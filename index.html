@@ -168,7 +168,7 @@
 
   async function generateBotResponse(input) {
     try {
-      const res = await fetch("https://your-backend.onrender.com/chat", {
+      const res = await fetch("https://chatbot-backend-gj3n.onrender.com", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input })
@@ -185,4 +185,5 @@
 
 </body>
 </html>
+
 
