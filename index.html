@@ -134,56 +134,61 @@
   </div>
 
 <script>
+  const API_BASE = "https://chatbot-backend-gj3n.onrender.com"; // ✅ your Render URL
+
   const chatForm = document.getElementById('chatForm');
   const userInput = document.getElementById('userInput');
   const chatMessages = document.getElementById('chatMessages');
 
-  chatForm.addEventListener('submit', async e => {
+  chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = userInput.value.trim();
     if (!text) return;
 
-    // Add user message
+    // user bubble
     const userMsg = document.createElement('div');
     userMsg.classList.add('message', 'user');
     userMsg.textContent = text;
     chatMessages.appendChild(userMsg);
 
-    // Clear input
     userInput.value = '';
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Add placeholder bot "typing..."
+    // bot placeholder bubble
     const botMsg = document.createElement('div');
     botMsg.classList.add('message', 'bot');
     botMsg.textContent = 'Thinking...';
     chatMessages.appendChild(botMsg);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Get AI reply from backend
-    const reply = await generateBotResponse(text);
-    botMsg.textContent = reply;
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  });
-
-  async function generateBotResponse(input) {
     try {
-      const res = await fetch("https://chatbot-backend-gj3n.onrender.com", {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input })
+        body: JSON.stringify({ message: text })
       });
 
+      // Handle non-200s (avoid parsing HTML error pages as JSON)
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error("Backend error:", res.status, errText);
+        botMsg.textContent = `Server error (${res.status}).`;
+        return;
+      }
+
       const data = await res.json();
-      return data.reply || "Sorry, I couldn't get a response.";
+      botMsg.textContent = data.reply || "No response from AI.";
     } catch (err) {
       console.error(err);
-      return "Error: Could not reach the AI server.";
+      botMsg.textContent = "Network error: could not reach the AI server.";
     }
-  }
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
 </script>
 
 </body>
 </html>
+
 
 
