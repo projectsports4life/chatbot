@@ -133,47 +133,56 @@
     </form>
   </div>
 
-  <script>
-    const chatForm = document.getElementById('chatForm');
-    const userInput = document.getElementById('userInput');
-    const chatMessages = document.getElementById('chatMessages');
+<script>
+  const chatForm = document.getElementById('chatForm');
+  const userInput = document.getElementById('userInput');
+  const chatMessages = document.getElementById('chatMessages');
 
-    chatForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const text = userInput.value.trim();
-      if (!text) return;
+  chatForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = userInput.value.trim();
+    if (!text) return;
 
-      // Add user message
-      const userMsg = document.createElement('div');
-      userMsg.classList.add('message', 'user');
-      userMsg.textContent = text;
-      chatMessages.appendChild(userMsg);
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.classList.add('message', 'user');
+    userMsg.textContent = text;
+    chatMessages.appendChild(userMsg);
 
-      // Clear input
-      userInput.value = '';
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Clear input
+    userInput.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-      // Simple bot reply after delay
-      setTimeout(() => {
-        const botMsg = document.createElement('div');
-        botMsg.classList.add('message', 'bot');
-        botMsg.textContent = generateBotResponse(text);
-        chatMessages.appendChild(botMsg);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }, 800);
-    });
+    // Add placeholder bot "typing..."
+    const botMsg = document.createElement('div');
+    botMsg.classList.add('message', 'bot');
+    botMsg.textContent = 'Thinking...';
+    chatMessages.appendChild(botMsg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    function generateBotResponse(input) {
-      // Very simple example responses
-      const lowerInput = input.toLowerCase();
-      if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
-        return 'Hi there! How can I assist you?';
-      }
-      if (lowerInput.includes('help')) {
-        return 'Sure, I am here to help! What do you need?';
-      }
-      return "I'm just a demo bot — try saying 'hello' or 'help'.";
+    // Get AI reply from backend
+    const reply = await generateBotResponse(text);
+    botMsg.textContent = reply;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+
+  async function generateBotResponse(input) {
+    try {
+      const res = await fetch("https://your-backend.onrender.com/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input })
+      });
+
+      const data = await res.json();
+      return data.reply || "Sorry, I couldn't get a response.";
+    } catch (err) {
+      console.error(err);
+      return "Error: Could not reach the AI server.";
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
+
