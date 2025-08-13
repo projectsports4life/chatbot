@@ -162,7 +162,7 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     try {
-      const res = await fetch(`${https://chatbot-backend-gj3n.onrender.com/chat}/chat`, {
+      const res = await fetch("https://chatbot-backend-gj3n.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })
@@ -189,6 +189,7 @@
 
 </body>
 </html>
+
 
 
 
