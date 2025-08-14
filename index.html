@@ -6,9 +6,7 @@
   <title>Simple Chatbot</title>
   <style>
     /* Reset some default */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -119,6 +117,26 @@
       background-color: rgba(74, 144, 226, 0.5);
       border-radius: 3px;
     }
+
+    /* Optional Markdown styling inside bot messages */
+    .message.bot table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+    }
+    .message.bot th, .message.bot td {
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 4px 8px;
+      text-align: left;
+    }
+    .message.bot h1, .message.bot h2, .message.bot h3 {
+      margin: 8px 0;
+      font-weight: bold;
+    }
+    .message.bot ul, .message.bot ol {
+      padding-left: 20px;
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -133,64 +151,61 @@
     </form>
   </div>
 
-<script>
-  const API_BASE = "https://chatbot-backend-gj3n.onrender.com"; // ✅ your Render URL
+  <!-- Marked library for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-  const chatForm = document.getElementById('chatForm');
-  const userInput = document.getElementById('userInput');
-  const chatMessages = document.getElementById('chatMessages');
+  <script>
+    const API_BASE = "https://chatbot-backend-gj3n.onrender.com";
 
-  chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = userInput.value.trim();
-    if (!text) return;
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
+    const chatMessages = document.getElementById('chatMessages');
 
-    // user bubble
-    const userMsg = document.createElement('div');
-    userMsg.classList.add('message', 'user');
-    userMsg.textContent = text;
-    chatMessages.appendChild(userMsg);
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text) return;
 
-    userInput.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+      // User message
+      const userMsg = document.createElement('div');
+      userMsg.classList.add('message', 'user');
+      userMsg.textContent = text;
+      chatMessages.appendChild(userMsg);
 
-    // bot placeholder bubble
-    const botMsg = document.createElement('div');
-    botMsg.classList.add('message', 'bot');
-    botMsg.textContent = 'Thinking...';
-    chatMessages.appendChild(botMsg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+      userInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    try {
-      const res = await fetch("https://chatbot-backend-gj3n.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
+      // Bot placeholder
+      const botMsg = document.createElement('div');
+      botMsg.classList.add('message', 'bot');
+      botMsg.textContent = 'Thinking...';
+      chatMessages.appendChild(botMsg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
 
-      // Handle non-200s (avoid parsing HTML error pages as JSON)
-      if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        console.error("Backend error:", res.status, errText);
-        botMsg.textContent = `Server error (${res.status}).`;
-        return;
+      try {
+        const res = await fetch(`${API_BASE}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => "");
+          console.error("Backend error:", res.status, errText);
+          botMsg.textContent = `Server error (${res.status}).`;
+          return;
+        }
+
+        const data = await res.json();
+        // Render AI reply as Markdown
+        botMsg.innerHTML = marked.parse(data.reply || "No response from AI.");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      } catch (err) {
+        console.error(err);
+        botMsg.textContent = "Network error: could not reach the AI server.";
       }
-
-      const data = await res.json();
-      botMsg.textContent = data.reply || "No response from AI.";
-    } catch (err) {
-      console.error(err);
-      botMsg.textContent = "Network error: could not reach the AI server.";
-    }
-
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
